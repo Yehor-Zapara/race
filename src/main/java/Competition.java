@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,15 +36,19 @@ public class Competition {
 
     private Map<String, LocalDateTime> readFile(String filePath) {
         try (Stream<String> lines = Files.lines(Path.of(filePath))) {
-            return lines.collect(Collectors.toMap(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
-                    line -> LocalDateTime.parse(line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT), FORMATTER),
-                    (line, duplicateLine) -> filePath.endsWith(START_READ_FILE) ? line : duplicateLine));
+            return lines.collect(Collectors.toMap(
+                    line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
+                    line -> LocalDateTime.parse(
+                            line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT), FORMATTER),
+                    (line, duplicateLine) ->
+                            filePath.endsWith(START_READ_FILE) ? line : duplicateLine));
         } catch (IOException ex) {
             throw new RuntimeException("Can't read data by path " + filePath, ex);
         }
     }
 
-    private List<String> findWinners(Map<String, LocalDateTime> startData, Map<String, LocalDateTime> finishData) {
+    private List<String> findWinners(Map<String, LocalDateTime> startData,
+                                     Map<String, LocalDateTime> finishData) {
         Map<String, LocalDateTime> tagsData = new HashMap<>(startData);
         return tagsData.entrySet().stream()
                 .peek(e -> e.setValue(parseDateTime(e.getValue(),
@@ -56,9 +59,12 @@ public class Competition {
                 .collect(Collectors.toList());
     }
 
-    private LocalDateTime parseDateTime(LocalDateTime startDateTime, LocalDateTime finishDateTime) {
-        Period period = Period.between(startDateTime.toLocalDate(), finishDateTime.toLocalDate());
-        Duration duration = Duration.between(startDateTime.toLocalTime(), finishDateTime.toLocalTime());
+    private LocalDateTime parseDateTime(LocalDateTime startDateTime,
+                                        LocalDateTime finishDateTime) {
+        Period period = Period.between(
+                startDateTime.toLocalDate(), finishDateTime.toLocalDate());
+        Duration duration = Duration.between(
+                startDateTime.toLocalTime(), finishDateTime.toLocalTime());
         return LocalDateTime.MIN.plus(period).plus(duration);
     }
 }
