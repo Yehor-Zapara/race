@@ -48,8 +48,8 @@ public class Competition {
     private List<String> findWinners(Map<String, String> startData, Map<String, String> finishData) {
         Map<String, String> tagsData = new HashMap<>(startData);
         return tagsData.entrySet().stream()
-                .filter(e -> finishData.get(e.getKey()) != null)
-                .peek(e -> e.setValue(parseDateTime(e.getValue(), finishData.get(e.getKey()))))
+                .peek(e -> e.setValue(parseDateTime(e.getValue(),
+                        finishData.getOrDefault(e.getKey(), LocalDateTime.MAX.format(FORMATTER)))))
                 .sorted(Comparator.comparing(e -> LocalDateTime.parse(e.getValue(), FORMATTER)))
                 .limit(NUMBER_OF_PARTICIPANTS)
                 .map(Map.Entry::getKey)
