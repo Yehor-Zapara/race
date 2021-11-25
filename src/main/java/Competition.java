@@ -28,39 +28,37 @@ public class Competition {
 
     public static void main(String[] args) {
         Competition competition = new Competition();
-        Map<String, String> startData =
+        Map<String, LocalDateTime> startData =
                 competition.readFile(DIRECTORY + File.separator + START_READ_FILE);
-        Map<String, String> finishData =
+        Map<String, LocalDateTime> finishData =
                 competition.readFile(DIRECTORY + File.separator + FINISH_READ_FILE);
         competition.findWinners(startData, finishData).forEach(System.out::println);
     }
 
-    private Map<String, String> readFile(String filePath) {
+    private Map<String, LocalDateTime> readFile(String filePath) {
         try (Stream<String> lines = Files.lines(Path.of(filePath))) {
             return lines.collect(Collectors.toMap(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
-                    line -> line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT),
+                    line -> LocalDateTime.parse(line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT), FORMATTER),
                     (line, duplicateLine) -> filePath.endsWith(START_READ_FILE) ? line : duplicateLine));
         } catch (IOException ex) {
             throw new RuntimeException("Can't read data by path " + filePath, ex);
         }
     }
 
-    private List<String> findWinners(Map<String, String> startData, Map<String, String> finishData) {
-        Map<String, String> tagsData = new HashMap<>(startData);
+    private List<String> findWinners(Map<String, LocalDateTime> startData, Map<String, LocalDateTime> finishData) {
+        Map<String, LocalDateTime> tagsData = new HashMap<>(startData);
         return tagsData.entrySet().stream()
                 .peek(e -> e.setValue(parseDateTime(e.getValue(),
-                        finishData.getOrDefault(e.getKey(), LocalDateTime.MAX.format(FORMATTER)))))
-                .sorted(Comparator.comparing(e -> LocalDateTime.parse(e.getValue(), FORMATTER)))
+                        finishData.getOrDefault(e.getKey(), LocalDateTime.MAX))))
+                .sorted(Map.Entry.comparingByValue())
                 .limit(NUMBER_OF_PARTICIPANTS)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
 
-    private String parseDateTime(String start, String finish) {
-        LocalDateTime startDateTime = LocalDateTime.parse(start, FORMATTER);
-        LocalDateTime finishDateTime = LocalDateTime.parse(finish, FORMATTER);
+    private LocalDateTime parseDateTime(LocalDateTime startDateTime, LocalDateTime finishDateTime) {
         Period period = Period.between(startDateTime.toLocalDate(), finishDateTime.toLocalDate());
         Duration duration = Duration.between(startDateTime.toLocalTime(), finishDateTime.toLocalTime());
-        return LocalDateTime.MIN.plus(period).plus(duration).format(FORMATTER);
+        return LocalDateTime.MIN.plus(period).plus(duration);
     }
 }
