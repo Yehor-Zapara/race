@@ -47,14 +47,9 @@ public class Competition {
 
     private static Map<String, String> parseData(List<String> data) {
         return  data.stream()
-                .filter(distinctByTag(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT)))
                 .collect(Collectors.toMap(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
-                        line -> line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT)));
-    }
-
-    private static <T> Predicate<T> distinctByTag(Function<? super T, ?> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+                        line -> line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT),
+                        (line, duplicateLine) -> line));
     }
 
     private static List<String> findWinners(Map<String, String> startTagsData, Map<String, String> finishTagsData) {
