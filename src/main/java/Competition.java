@@ -28,8 +28,10 @@ public class Competition {
 
     public static void main(String[] args) {
         Competition competition = new Competition();
-        Map<String, String> startData = competition.readFile(DIRECTORY + File.separator + START_READ_FILE);
-        Map<String, String> finishData = competition.readFile(DIRECTORY + File.separator + FINISH_READ_FILE);
+        Map<String, String> startData =
+                competition.readFile(DIRECTORY + File.separator + START_READ_FILE);
+        Map<String, String> finishData =
+                competition.readFile(DIRECTORY + File.separator + FINISH_READ_FILE);
         competition.findWinners(startData, finishData).forEach(System.out::println);
     }
 
@@ -43,11 +45,11 @@ public class Competition {
         }
     }
 
-    private List<String> findWinners(Map<String, String> startTagsData, Map<String, String> finishTagsData) {
-        Map<String, String> tagsData = new HashMap<>(startTagsData);
+    private List<String> findWinners(Map<String, String> startData, Map<String, String> finishData) {
+        Map<String, String> tagsData = new HashMap<>(startData);
         return tagsData.entrySet().stream()
-                .filter(e -> finishTagsData.get(e.getKey()) != null)
-                .peek(e -> e.setValue(parseDateTime(e.getValue(), finishTagsData.get(e.getKey()))))
+                .filter(e -> finishData.get(e.getKey()) != null)
+                .peek(e -> e.setValue(parseDateTime(e.getValue(), finishData.get(e.getKey()))))
                 .sorted(Comparator.comparing(e -> LocalDateTime.parse(e.getValue(), FORMATTER)))
                 .limit(NUMBER_OF_PARTICIPANTS)
                 .map(Map.Entry::getKey)
