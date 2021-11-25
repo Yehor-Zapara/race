@@ -31,28 +31,23 @@ public class Competition {
     private static final int NUMBER_OF_PARTICIPANTS = 10;
 
     public static void main(String[] args) {
-        List<String> startData = readFile(DIRECTORY + File.separator + START_READ_FILE);
-        List<String> finishData = readFile(DIRECTORY + File.separator + FINISH_READ_FILE);
-        Collections.reverse(finishData);
-        findWinners(parseData(startData), parseData(finishData)).forEach(System.out::println);
+        Competition competition = new Competition();
+        Map<String, String> startData = competition.readFile(DIRECTORY + File.separator + START_READ_FILE);
+        Map<String, String> finishData = competition.readFile(DIRECTORY + File.separator + FINISH_READ_FILE);
+        competition.findWinners(startData, finishData).forEach(System.out::println);
     }
 
-    private static List<String> readFile(String filePath) {
+    private Map<String, String> readFile(String filePath) {
         try (Stream<String> lines = Files.lines(Path.of(filePath))) {
-            return lines.collect(Collectors.toList());
+            return lines.collect(Collectors.toMap(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
+                    line -> line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT),
+                    (line, duplicateLine) -> filePath.endsWith(START_READ_FILE) ? line : duplicateLine));
         } catch (IOException ex) {
             throw new RuntimeException("Can't read data by path " + filePath, ex);
         }
     }
 
-    private static Map<String, String> parseData(List<String> data) {
-        return  data.stream()
-                .collect(Collectors.toMap(line -> line.substring(TAG_STARTS_AT, TAG_ENDS_AT),
-                        line -> line.substring(TIMESTAMP_STARTS_AT, TIMESTAMP_ENDS_AT),
-                        (line, duplicateLine) -> line));
-    }
-
-    private static List<String> findWinners(Map<String, String> startTagsData, Map<String, String> finishTagsData) {
+    private List<String> findWinners(Map<String, String> startTagsData, Map<String, String> finishTagsData) {
         Map<String, String> tagsData = new HashMap<>(startTagsData);
         return tagsData.entrySet().stream()
                 .filter(e -> finishTagsData.get(e.getKey()) != null)
@@ -63,7 +58,7 @@ public class Competition {
                 .collect(Collectors.toList());
     }
 
-    private static String parseDateTime(String start, String finish) {
+    private String parseDateTime(String start, String finish) {
         LocalDateTime startDateTime = LocalDateTime.parse(start, FORMATTER);
         LocalDateTime finishDateTime = LocalDateTime.parse(finish, FORMATTER);
         Period period = Period.between(startDateTime.toLocalDate(), finishDateTime.toLocalDate());
